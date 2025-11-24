@@ -10,20 +10,20 @@ import { fetchBusArrivals, fetchTrainArrivals, STOP_IDS, BusArrival, TrainArriva
 const Index = () => {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
-  const [perthRoadArrivals, setPerthRoadArrivals] = useState<BusArrival[]>([]);
+  const [leaBridgeRoundaboutArrivals, setLeaBridgeRoundaboutArrivals] = useState<BusArrival[]>([]);
   const [leaBridgeBusArrivals, setLeaBridgeBusArrivals] = useState<BusArrival[]>([]);
   const [leaBridgeTrainArrivals, setLeaBridgeTrainArrivals] = useState<TrainArrival[]>([]);
 
   const fetchAllArrivals = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [perthBuses, leaBridgeBuses, leaBridgeTrains] = await Promise.all([
-        fetchBusArrivals(STOP_IDS.PERTH_ROAD),
+      const [roundaboutBuses, leaBridgeBuses, leaBridgeTrains] = await Promise.all([
+        fetchBusArrivals(STOP_IDS.LEA_BRIDGE_ROUNDABOUT),
         fetchBusArrivals(STOP_IDS.LEA_BRIDGE_STATION_BUS),
         fetchTrainArrivals(STOP_IDS.LEA_BRIDGE_STATION_RAIL),
       ]);
 
-      setPerthRoadArrivals(perthBuses);
+      setLeaBridgeRoundaboutArrivals(roundaboutBuses);
       setLeaBridgeBusArrivals(leaBridgeBuses);
       setLeaBridgeTrainArrivals(leaBridgeTrains);
       setLastUpdated(new Date());
@@ -77,7 +77,7 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {isLoading && perthRoadArrivals.length === 0 ? (
+        {isLoading && leaBridgeRoundaboutArrivals.length === 0 ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center space-y-4">
               <RefreshCw className="h-12 w-12 animate-spin text-primary mx-auto" />
@@ -92,7 +92,7 @@ const Index = () => {
                 <span className="text-primary">Bus Arrivals</span>
               </h2>
               <div className="grid md:grid-cols-2 gap-6">
-                <BusArrivals stopName="Perth Road" arrivals={perthRoadArrivals} />
+                <BusArrivals stopName="Lea Bridge Roundabout" arrivals={leaBridgeRoundaboutArrivals} />
                 <BusArrivals stopName="Lea Bridge Station" arrivals={leaBridgeBusArrivals} />
               </div>
             </section>
