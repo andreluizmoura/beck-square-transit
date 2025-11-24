@@ -26,16 +26,22 @@ export const BusArrivals = ({ stopName, arrivals }: BusArrivalsProps) => {
         </div>
       </div>
       <div className="grid gap-3">
-        {arrivals.map((arrival, index) => (
-          <TransportCard
-            key={index}
-            type="bus"
-            route={arrival.route}
-            destination={arrival.destination}
-            arrivalTime={arrival.arrivalTime}
-            status={arrival.status}
-          />
-        ))}
+        {arrivals.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No arrivals available at the moment
+          </div>
+        ) : (
+          arrivals.map((arrival, index) => (
+            <TransportCard
+              key={`${arrival.route}-${arrival.destination}-${index}`}
+              type="bus"
+              route={arrival.route}
+              destination={arrival.destination}
+              arrivalTime={arrival.arrivalTime}
+              status={arrival.status}
+            />
+          ))
+        )}
       </div>
     </div>
   );
