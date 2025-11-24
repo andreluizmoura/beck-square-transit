@@ -3,44 +3,53 @@ import { TrainArrivals } from "@/components/TrainArrivals";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { fetchBusArrivals, fetchTrainArrivals, STOP_IDS, BusArrival, TrainArrival } from "@/services/tflApi";
 
 const Index = () => {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isLoading, setIsLoading] = useState(true);
+  const [perthRoadArrivals, setPerthRoadArrivals] = useState<BusArrival[]>([]);
+  const [leaBridgeBusArrivals, setLeaBridgeBusArrivals] = useState<BusArrival[]>([]);
+  const [leaBridgeTrainArrivals, setLeaBridgeTrainArrivals] = useState<TrainArrival[]>([]);
 
-  const perthRoadArrivals = [
-    { route: "48", destination: "Walthamstow Central", arrivalTime: "2 min", status: "On time" as const },
-    { route: "56", destination: "Hackney Central", arrivalTime: "5 min", status: "On time" as const },
-    { route: "48", destination: "London Bridge", arrivalTime: "8 min", status: "On time" as const },
-    { route: "488", destination: "Bromley-by-Bow", arrivalTime: "12 min", status: "Delayed" as const },
-  ];
+  const fetchAllArrivals = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const [perthBuses, leaBridgeBuses, leaBridgeTrains] = await Promise.all([
+        fetchBusArrivals(STOP_IDS.PERTH_ROAD),
+        fetchBusArrivals(STOP_IDS.LEA_BRIDGE_STATION_BUS),
+        fetchTrainArrivals(STOP_IDS.LEA_BRIDGE_STATION_RAIL),
+      ]);
 
-  const leaBridgeBusArrivals = [
-    { route: "56", destination: "Hackney Central", arrivalTime: "3 min", status: "On time" as const },
-    { route: "W15", destination: "Hackney Wick", arrivalTime: "7 min", status: "On time" as const },
-    { route: "W15", destination: "Chingford Station", arrivalTime: "15 min", status: "On time" as const },
-  ];
-
-  const leaBridgeTrainArrivals = [
-    { route: "Liverpool St", destination: "Liverpool Street", arrivalTime: "4 min", platform: "1", status: "On time" as const },
-    { route: "Stratford", destination: "Stratford", arrivalTime: "9 min", platform: "2", status: "On time" as const },
-    { route: "Chingford", destination: "Chingford", arrivalTime: "14 min", platform: "1", status: "On time" as const },
-    { route: "Liverpool St", destination: "Liverpool Street", arrivalTime: "19 min", platform: "1", status: "On time" as const },
-  ];
+      setPerthRoadArrivals(perthBuses);
+      setLeaBridgeBusArrivals(leaBridgeBuses);
+      setLeaBridgeTrainArrivals(leaBridgeTrains);
+      setLastUpdated(new Date());
+    } catch (error) {
+      toast.error("Failed to fetch transport data. Please try again.");
+      console.error("Error fetching arrivals:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const handleRefresh = () => {
-    setLastUpdated(new Date());
-    toast.success("Transport information updated");
+    fetchAllArrivals();
+    toast.success("Refreshing transport information...");
   };
 
   useEffect(() => {
+    fetchAllArrivals();
+    
+    // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
-      setLastUpdated(new Date());
-    }, 30000); // Auto-refresh every 30 seconds
+      fetchAllArrivals();
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchAllArrivals]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,28 +77,37 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="space-y-8">
-          {/* Bus Stops Section */}
-          <section>
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <span className="text-primary">Bus Arrivals</span>
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <BusArrivals stopName="Perth Road" arrivals={perthRoadArrivals} />
-              <BusArrivals stopName="Lea Bridge Station" arrivals={leaBridgeBusArrivals} />
+        {isLoading && perthRoadArrivals.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-4">
+              <RefreshCw className="h-12 w-12 animate-spin text-primary mx-auto" />
+              <p className="text-lg text-muted-foreground">Loading transport data...</p>
             </div>
-          </section>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {/* Bus Stops Section */}
+            <section>
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <span className="text-primary">Bus Arrivals</span>
+              </h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                <BusArrivals stopName="Perth Road" arrivals={perthRoadArrivals} />
+                <BusArrivals stopName="Lea Bridge Station" arrivals={leaBridgeBusArrivals} />
+              </div>
+            </section>
 
-          <Separator className="my-8" />
+            <Separator className="my-8" />
 
-          {/* Train Station Section */}
-          <section>
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <span className="text-secondary">Train Arrivals</span>
-            </h2>
-            <TrainArrivals stationName="Lea Bridge Station" arrivals={leaBridgeTrainArrivals} />
-          </section>
-        </div>
+            {/* Train Station Section */}
+            <section>
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <span className="text-secondary">Train Arrivals</span>
+              </h2>
+              <TrainArrivals stationName="Lea Bridge Station" arrivals={leaBridgeTrainArrivals} />
+            </section>
+          </div>
+        )}
       </main>
 
       {/* Footer */}
