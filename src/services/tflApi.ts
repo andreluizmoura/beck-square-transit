@@ -11,7 +11,7 @@ const TFL_APP_KEY = ""; // Leave empty to use without authentication
 
 // Stop IDs for Beck Square area in Leyton
 export const STOP_IDS = {
-  LEA_BRIDGE_ROUNDABOUT: "490009035L",
+  LEA_BRIDGE_ROUNDABOUT: "490010956E",
   LEA_BRIDGE_STATION_BUS: "490011583W",
   LEA_BRIDGE_STATION_RAIL: "910GLEABDGE",
 };
