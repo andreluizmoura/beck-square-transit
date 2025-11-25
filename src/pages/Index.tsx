@@ -92,7 +92,7 @@ const Index = () => {
                 <span className="text-primary">Bus Arrivals</span>
               </h2>
               <div className="grid md:grid-cols-2 gap-6">
-                <BusArrivals stopName="Lea Bridge Roundabout" arrivals={leaBridgeRoundaboutArrivals} />
+                <BusArrivals stopName="Perth Road" arrivals={leaBridgeRoundaboutArrivals} />
                 <BusArrivals stopName="Lea Bridge Station" arrivals={leaBridgeBusArrivals} />
               </div>
             </section>
