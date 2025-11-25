@@ -1,18 +1,18 @@
 import { BusArrivals } from "@/components/BusArrivals";
-import { TrainArrivals } from "@/components/TrainArrivals";
+import { TrainDepartures } from "@/components/TrainDepartures";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { fetchBusArrivals, fetchTrainArrivals, STOP_IDS, BusArrival, TrainArrival } from "@/services/tflApi";
+import { fetchBusArrivals, fetchTrainDepartures, STOP_IDS, BusArrival, TrainDeparture } from "@/services/tflApi";
 
 const Index = () => {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [leaBridgeRoundaboutArrivals, setLeaBridgeRoundaboutArrivals] = useState<BusArrival[]>([]);
   const [leaBridgeBusArrivals, setLeaBridgeBusArrivals] = useState<BusArrival[]>([]);
-  const [leaBridgeTrainArrivals, setLeaBridgeTrainArrivals] = useState<TrainArrival[]>([]);
+  const [leaBridgeTrainDepartures, setLeaBridgeTrainDepartures] = useState<TrainDeparture[]>([]);
 
   const fetchAllArrivals = useCallback(async () => {
     try {
@@ -20,16 +20,16 @@ const Index = () => {
       const [roundaboutBuses, leaBridgeBuses, leaBridgeTrains] = await Promise.all([
         fetchBusArrivals(STOP_IDS.LEA_BRIDGE_ROUNDABOUT),
         fetchBusArrivals(STOP_IDS.LEA_BRIDGE_STATION_BUS),
-        fetchTrainArrivals(STOP_IDS.LEA_BRIDGE_STATION_RAIL),
+        fetchTrainDepartures(),
       ]);
 
       setLeaBridgeRoundaboutArrivals(roundaboutBuses);
       setLeaBridgeBusArrivals(leaBridgeBuses);
-      setLeaBridgeTrainArrivals(leaBridgeTrains);
+      setLeaBridgeTrainDepartures(leaBridgeTrains);
       setLastUpdated(new Date());
     } catch (error) {
       toast.error("Failed to fetch transport data. Please try again.");
-      console.error("Error fetching arrivals:", error);
+      console.error("Error fetching transport data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -102,9 +102,9 @@ const Index = () => {
             {/* Train Station Section */}
             <section>
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <span className="text-secondary">Train Arrivals</span>
+                <span className="text-secondary">Train Departures</span>
               </h2>
-              <TrainArrivals stationName="Lea Bridge Station" arrivals={leaBridgeTrainArrivals} />
+              <TrainDepartures stationName="Lea Bridge Station" departures={leaBridgeTrainDepartures} />
             </section>
           </div>
         )}

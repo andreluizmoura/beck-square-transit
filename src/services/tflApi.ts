@@ -33,12 +33,28 @@ export interface BusArrival {
   status: "On time" | "Delayed" | "Cancelled";
 }
 
-export interface TrainArrival {
+export interface TrainDeparture {
   route: string;
   destination: string;
-  arrivalTime: string;
+  departureTime: string;
   platform: string;
   status: "On time" | "Delayed" | "Cancelled";
+}
+
+// National Rail API via Huxley 2
+const HUXLEY_API_BASE = "https://huxley2.azurewebsites.net";
+
+interface HuxleyService {
+  destination?: Array<{ locationName: string }>;
+  std?: string; // Scheduled time of departure
+  etd?: string; // Estimated time of departure
+  platform?: string;
+  operator?: string;
+  isCancelled?: boolean;
+}
+
+interface HuxleyResponse {
+  trainServices?: HuxleyService[];
 }
 
 const buildUrl = (endpoint: string): string => {
@@ -91,31 +107,46 @@ export const fetchBusArrivals = async (stopId: string): Promise<BusArrival[]> =>
   }
 };
 
-export const fetchTrainArrivals = async (stationId: string): Promise<TrainArrival[]> => {
+export const fetchTrainDepartures = async (): Promise<TrainDeparture[]> => {
   try {
-    const url = buildUrl(`/StopPoint/${stationId}/Arrivals`);
+    // Using Huxley 2 API for National Rail (Lea Bridge = LEB)
+    const url = `${HUXLEY_API_BASE}/departures/LEB/4?expand=true`;
     const response = await fetch(url);
     
     if (!response.ok) {
-      throw new Error(`TfL API error: ${response.status}`);
+      throw new Error(`National Rail API error: ${response.status}`);
     }
     
-    const data: TflArrival[] = await response.json();
+    const data: HuxleyResponse = await response.json();
     
-    // Sort by arrival time and take the next 4 trains
-    const sortedArrivals = data
-      .sort((a, b) => a.timeToStation - b.timeToStation)
-      .slice(0, 4);
+    if (!data.trainServices || data.trainServices.length === 0) {
+      return [];
+    }
     
-    return sortedArrivals.map((arrival) => ({
-      route: arrival.lineName,
-      destination: arrival.destinationName,
-      arrivalTime: formatArrivalTime(arrival.timeToStation),
-      platform: arrival.platformName || "TBA",
-      status: determineStatus(arrival.timeToStation),
-    }));
+    return data.trainServices.slice(0, 4).map((service) => {
+      const destination = service.destination?.[0]?.locationName || "Unknown";
+      const scheduled = service.std || "TBA";
+      const estimated = service.etd || scheduled;
+      const isCancelled = service.isCancelled || false;
+      const isDelayed = estimated !== scheduled && estimated !== "On time";
+      
+      let status: "On time" | "Delayed" | "Cancelled" = "On time";
+      if (isCancelled) {
+        status = "Cancelled";
+      } else if (isDelayed && estimated !== "Delayed") {
+        status = "Delayed";
+      }
+      
+      return {
+        route: service.operator || "National Rail",
+        destination,
+        departureTime: estimated === "On time" ? scheduled : estimated,
+        platform: service.platform || "TBA",
+        status,
+      };
+    });
   } catch (error) {
-    console.error(`Error fetching train arrivals for station ${stationId}:`, error);
+    console.error("Error fetching train departures:", error);
     throw error;
   }
 };

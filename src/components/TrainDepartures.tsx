@@ -1,20 +1,20 @@
 import { TransportCard } from "./TransportCard";
 import { Train } from "lucide-react";
 
-interface TrainArrival {
+interface TrainDeparture {
   route: string;
   destination: string;
-  arrivalTime: string;
+  departureTime: string;
   platform: string;
   status: "On time" | "Delayed" | "Cancelled";
 }
 
-interface TrainArrivalsProps {
+interface TrainDeparturesProps {
   stationName: string;
-  arrivals: TrainArrival[];
+  departures: TrainDeparture[];
 }
 
-export const TrainArrivals = ({ stationName, arrivals }: TrainArrivalsProps) => {
+export const TrainDepartures = ({ stationName, departures }: TrainDeparturesProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -27,20 +27,20 @@ export const TrainArrivals = ({ stationName, arrivals }: TrainArrivalsProps) => 
         </div>
       </div>
       <div className="grid gap-3">
-        {arrivals.length === 0 ? (
+        {departures.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            No train arrivals available at the moment
+            No train departures available at the moment
           </div>
         ) : (
-          arrivals.map((arrival, index) => (
+          departures.map((departure, index) => (
             <TransportCard
-              key={`${arrival.route}-${arrival.destination}-${index}`}
+              key={`${departure.route}-${departure.destination}-${index}`}
               type="train"
-              route={arrival.route}
-              destination={arrival.destination}
-              arrivalTime={arrival.arrivalTime}
-              status={arrival.status}
-              platform={arrival.platform}
+              route={departure.route}
+              destination={departure.destination}
+              arrivalTime={departure.departureTime}
+              status={departure.status}
+              platform={departure.platform}
             />
           ))
         )}
