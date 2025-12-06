@@ -1,7 +1,7 @@
 import { BusArrivals } from "@/components/BusArrivals";
 import { TrainDepartures } from "@/components/TrainDepartures";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, RefreshCw } from "lucide-react";
+import { TrainFront, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -47,7 +47,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
-                <MapPin className="h-7 w-7 text-primary" />
+                <TrainFront className="h-7 w-7 text-primary" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold">Beck Square Transport</h1>
